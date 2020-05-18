@@ -6,10 +6,13 @@ import me.moshe.dropstack.file.DroppedItemData;
 import me.moshe.dropstack.util.Utils;
 import me.moshe.dropstack.util.XMaterial;
 import org.bukkit.Bukkit;
+import org.bukkit.Material;
+import org.bukkit.block.Block;
 import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
+import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.event.entity.ItemDespawnEvent;
 import org.bukkit.event.entity.ItemMergeEvent;
 import org.bukkit.event.entity.ItemSpawnEvent;
@@ -33,6 +36,7 @@ public class PlayerListener implements Listener {
     @EventHandler
     public void onDrop(PlayerDropItemEvent e) {
         Item item = e.getItemDrop();
+        if(item.getItemStack().getType().equals(Material.SAND) || item.getItemStack().getType().equals(Material.OBSIDIAN))e.setCancelled(true);
         List<Entity> entities = e.getPlayer().getNearbyEntities(2.25, 2.25, 2.25);
         List<Item> items = new ArrayList<>();
         for (Entity entity : entities) {
@@ -148,16 +152,16 @@ public class PlayerListener implements Listener {
     }
 
     @EventHandler
-    public void onPickUp(PlayerPickupItemEvent e){
+    public void onPickUp(PlayerPickupItemEvent e) {
         UUID uuid = e.getItem().getUniqueId();
-        if(getDroppedItems().containsKey(uuid)){
-           int value = getDroppedItems().get(uuid);
-           ItemStack item = new ItemStack(e.getItem().getItemStack().getType(), 1, e.getItem().getItemStack().getData().getData());
-           for(int i =  1; i < value; i++){
-               e.getPlayer().getInventory().addItem(item);
-           }
-           getDroppedItems().remove(uuid);
-           return;
+        if (getDroppedItems().containsKey(uuid)) {
+            int value = getDroppedItems().get(uuid);
+            ItemStack item = new ItemStack(e.getItem().getItemStack().getType(), 1, e.getItem().getItemStack().getData().getData());
+            for (int i = 1; i < value; i++) {
+                e.getPlayer().getInventory().addItem(item);
+            }
+            getDroppedItems().remove(uuid);
+            return;
         }
     }
 
@@ -167,6 +171,20 @@ public class PlayerListener implements Listener {
         UUID uuid = item.getUniqueId();
         if(getDroppedItems().containsKey(uuid)){
             getDroppedItems().remove(uuid);
+        }
+    }
+
+    @EventHandler
+    public void onItemSpawn(ItemSpawnEvent e){
+        Item item = e.getEntity();
+        if(item.getItemStack().getType() == Material.SAND || item.getItemStack().getType() == Material.OBSIDIAN)e.setCancelled(true);
+    }
+
+    @EventHandler
+    public void onBlockBreak(BlockBreakEvent e){
+        Block brokenBlock = e.getBlock();
+        if(brokenBlock.getType().equals(Material.OBSIDIAN) || brokenBlock.getType().equals(Material.SAND)){
+            brokenBlock.setType(Material.AIR);
         }
     }
 
